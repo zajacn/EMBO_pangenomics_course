@@ -32,13 +32,13 @@ In this tutorial we will aim to:
 
 In this excercise we will construct a tiny pangenome variation graph with vg construct. vg is a tool suite for working with variation graphs.
 
-We will construct a graph from a backbone in fasta file format and a set of variants in a VCF format.
+We will construct a graph from a sequence in fasta file format and then inject a set of variants in a VCF format that will be inserted into the graph as additional nodes.
 
 ``` bash
 singularity exec pggb_latest.sif vg construct -r tiny.fasta -v tiny.vcf.gz > tiny.vg
 ```
 
-Lets visualise this graph. Run both of these commands.
+Lets visualise this graph. Run both of these commands below.
 
 ``` bash
 singularity exec pggb_latest.sif vg view -dp tiny.vg | dot -T jpeg -o tiny.sequences.jpeg
@@ -47,11 +47,11 @@ singularity exec pggb_latest.sif vg view -dpS tiny.vg | dot -T jpeg -o tiny.sequ
 
 ### Questions
 
-Ok lets break down what you see - the nodes are sequences - both the reference and the variants, the top line indicates the reference (tiny.fasta) and the nodes not mentioned on that line are the variants.
+Ok lets break down what you see - the nodes are sequences, the links connect the seqeunces. Both the reference sequence and the variants are present in the graph, the top line indicates which nodes make up the reference (tiny.fasta) and the nodes that are not mentioned on that line are the variants.
 
 What is the difference between the two graphs you visualised?
 
-Why are some sequences broken down into separate nodes even though there are no variants between them - how long are these nodes? why do you think that is? To get an idea run:
+Why are some sequences broken down into separate nodes even though there are no variants between them - how long are these nodes? why do you think that is? To get an idea run and look at the different parameters are the dafults for those parameters:
 
 ``` bash
 singularity exec pggb_latest.sif vg construct -h
@@ -59,17 +59,17 @@ singularity exec pggb_latest.sif vg construct -h
 
 ::: {.callout-tip collapse="true" icon = "false" appearance="simple"}
 
-### Answers  
+### Answers
 
-On one graph all nodes have squences, on the other only the length of nodes is displayed.
+On one graph all nodes have the sequences displayed, on the other only the length of nodes is displayed.
 
 The -m parameters specifies a limit the maximum allowable node sequence size (default: 32). All nodes are maximum 32bp long.
 
-::: 
+:::
 
-### 2. GFA file format.
+## 2. GFA file format.
 
-Now lets convert our tiny graph into a gfa file.
+Now lets convert our tiny graph into a gfa file, the type of file format the pggb graph comes in. With the commands below you create and also display the file.
 
 ``` bash
 singularity exec pggb_latest.sif vg view tiny.vg > tiny.gfa
@@ -84,7 +84,8 @@ Lets look at the P line - can you explain the exact structure of this line? What
 
 ::: {.callout-tip collapse="true" icon = "false" appearance="simple"}
 
-### Answers  
+### Answers
+
 You should see the following line types:
 
 -   `H`: a header.
@@ -93,6 +94,54 @@ You should see the following line types:
 
 -   `L`: a "link" line, which is an edge in the graph.
 
--   `P`: a "path" line, which labels a path of interest in the graph. In this case, the path is the walk that the reference sequence takes through the graph.
-It should be noted, however, that the format does not specify that these lines come in a particular order.
-::: 
+-   `P`: a "path" line, which labels a path of interest in the graph. In this case, the path is the walk that the reference sequence takes through the graph. It should be noted, however, that the format does not specify that these lines come in a particular order.
+
+If the graph was built from multiple seqeunces, it would have multiple P lines.
+
+:::
+
+## 3. PanGenome Graph Builder
+
+To built a "real" pangenome graph we will now use a subset of sequences from our previous Drosophila dataset. We will be using a 40kb region on chromosome 2L within which there is a gene coding for Alcohol dehydrogenase. Alcohol dehydrogenase is an interesting enzyme whose activity has been show to differ between species that feed of and breed in fermented, rotten fruit (Drosophila simulans, Drosophila melanogaster) and species that feed and breed exclusively on ripe fruit (Drosophila suzuki).
+
+chr2L_14600000_14650000
+
+First lets have a look at the parameters that one can specify with pggb for building a pangenome graph:
+
+``` bash
+singularity exec pggb_latest.sif pggb -h
+```
+
+Lets pay attention to a few of them. Two parameters are essential for defining the structure of the pangenome and are implemented in the first step (wfmash mapping):
+
+--segment-length - default 5kb
+
+--map-pct-id - default 0.90 or 90%
+
+Segment length defines the length of the mapped and aligned segments, provides a kind of minimum alignment length filter. The mashmap step in wfmash will only consider segments of this size, and require them to have an approximate pairwise identity of at least --map-pct-id.
+
+Next you have a set of parameters defined at the step of graph induction which is done with seqwish.
+
+--min-match-len - which is set by default to 23
+
+The min-match-len sets a filter for exact matches below this length during graph induction. The default setting of -k 23 is optimal up to around 5% divergence, and we suggest lowering it for higher divergence and increasing it for lower divergence. Values up to -k 79 work well for human haplotypes. In effect, setting -k to N means that we can tolerate a local pairwise difference rate of no more than 1/N.
+
+Then you have a set of parameters for what you want as the output:
+
+--skip-viz - don't render visualizations of the graph in 1D and 2D \[default: make them\]
+
+-S, --stats - generate statistics of the seqwish and smoothxg graph \[default: off\]
+
+-m, --multiqc - generate MultiQC report of graphs' statistics and visualizations, automatically runs odgi stats \[default: off\]
+
+Now we are ready to build our own graph. Lets start with everything set to default.
+
+``` bash
+singularity exec pggb_latest.sif pggb -i data/Adh_Drosophila/chr2L_Adh.fasta -n 4 -t 16 -o Adh_pggb
+```
+
+Now lets change the segment length
+
+Lets change the percentage identity
+
+s to test 10000, 500; p to test 50

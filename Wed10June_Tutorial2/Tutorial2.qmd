@@ -166,7 +166,7 @@ Lets start filling out the following table - best if you create an excel table o
 
 | Run | Segment Length | Pairwise identity | Minimum match length | POA Length target | Length of the graph | Number of nodes | Number of edges |
 |---------|---------|---------|---------|---------|---------|---------|---------|
-| 1 | 5000 | 90 | 23 | 700,1100 | 89108 | 11109 | 15263 |
+| 1 | 5000 | 90 | 23 | 700,1100 | 107393 | 3214 | 4316 |
 
 : PGGB runs results
 
@@ -192,8 +192,8 @@ What do you observe? What is your conclusion - should we stick with 60% of go wi
 
 | Run | Segment Length | Pairwise identity | Minimum match length | POA Length target | Length of the graph | Number of nodes | Number of edges |
 |---------|---------|---------|---------|---------|---------|---------|---------|
-| 1 | 5000 | 90 | 23 | 700,1100 | 89108 | 11109 | 15263 |
-| 2 | 5000 | 60 | 23 | 700,1100 | 89195 | 11104 | 15256 |
+| 1 | 5000 | 90 | 23 | 700,1100 | 89769 | 10922 | 14995 |
+| 2 | 5000 | 60 | 23 | 700,1100 | 89819 | 10902 | 14968 |
 
 : PGGB runs results
 
@@ -201,22 +201,23 @@ The structure of the graph changed minimally, actually the size of the graph inc
 
 :::
 
-Now lets start changing the segment length, lets test a much smaller segment length of 500bp and then lets go with one twice as much as the default - 10,000bp.
+
+Now lets start changing the segment length, lets test a much smaller segment length of 100bp, 500bp and then lets go with one twice and four times as much as the default - 10,000bp and 20,000bp.
 
 ``` bash
-singularity exec pggb_latest.sif pggb -i data/Adh_Drosophila/chr2L_Adh.fasta -s 10000 -n 4 -t 16 -o Adh_pggb_s10k -S
-```
-
-``` bash
-singularity exec pggb_latest.sif pggb -i data/Adh_Drosophila/chr2L_Adh.fasta -s 500 -n 4 -t 16 -o Adh_pggb_s500bp -S
+singularity exec pggb_latest.sif pggb -i data/Adh_Drosophila/chr2L_Adh.fasta --segement-length <here_put_the_length> -n 4 -t 16 -o Adh_pggb_s10k -S
 ```
 
 Fill out the table! What do you see?
 
 | Run | Segment Length | Pairwise identity | Minimum match length | POA Length target | Length of the graph | Number of nodes | Number of edges |
 |---------|---------|---------|---------|---------|---------|---------|---------|
-| 1 | 500 | 90 | 23 | 700,1100 |  |  |  |
-| 2 | 10000 | 90 | 23 | 700,1100 |  |  |  |
+| 3 | 100 | 90 | 23 | 700,1100 |  |  |  |
+| 4 | 500 | 90 | 23 | 700,1100 |  |  |  |
+| 5 | 10000 | 90 | 23 | 700,1100 |  |  |  |
+| 6 | 20000 | 90 | 23 | 700,1100 |  |  |  |
+
+What is the difference between the smaller and the larger graph lengths? Why do you think that is? 
 
 ::: {.callout-tip collapse="true" icon = "false" appearance="simple"}
 
@@ -224,15 +225,96 @@ Fill out the table! What do you see?
 
 | Run | Segment Length | Pairwise identity | Minimum match length | POA Length target | Length of the graph | Number of nodes | Number of edges |
 |---------|---------|---------|---------|---------|---------|---------|---------|
-| 1 | 5000 | 90 | 23 | 700,1100 | 89108 | 11109 | 15263 |
-| 2 | 5000 | 60 | 23 | 700,1100 | 89195 | 11104 | 15256 |
-| 3 | 500 | 90 | 23 | 700,1100 | 110125 | 6301 | 8600 |
-| 4 | 10000 | 90 | 23 | 700,1100 | 102042 | 10411 | 14259 |
+| 1 | 5000 | 90 | 23 | 700,1100 | 89769 | 10922 | 14995 |
+| 2 | 5000 | 60 | 23 | 700,1100 | 89819 | 10902 | 14968 |
+| 3 | 100 | 90 | 23 | 700,1100 | 101211 | 8059 | 11062 |
+| 4 | 500 | 90 | 23 | 700,1100 | 92104 | 10511 | 14439 |
+| 5 | 10000 | 90 | 23 | 700,1100 | 89127 | 11024 | 15147 |
+| 6 | 20000 | 90 | 23 | 700,1100 | 89248 | 11105 | 15257 |
 
 : PGGB runs results
 
-The structure of the graph changed minimally, actually the size of the graph increased so it appears the p equals to 90% was already a good choice. Lets stick with that then.
+The graphs with smaller segment length are greater in length than graphs with greater segment length. 
+
+If you keep identity fixed at 90%:
+
+with -s 100, an alignment needs 90 matching bp within a 100 bp segment,
+with -s 10000, it needs 9000 matching bp across the entire segment.
+
+So smaller segment lengths increase alignment sensitivity and create a more fragmented graph.
 
 :::
 
-So far we have just accumulated statistics. Lets look at the visualisations. Have a look at the graph from our third run. Do you notice anything strange?
+Lets try decreasing percentage identity for the graphs with smaller segment length, lets try 60% - do you see any change?
+
+| Run | Segment Length | Pairwise identity | Minimum match length | POA Length target | Length of the graph | Number of nodes | Number of edges |
+|---------|---------|---------|---------|---------|---------|---------|---------|
+| 7 | 100 | 60 | 23 | 700,1100 |  |  |  |
+| 8 | 500 | 60 | 23 | 700,1100 |  |  |  |
+
+::: {.callout-tip collapse="true" icon = "false" appearance="simple"}
+
+### Answers
+
+| Run | Segment Length | Pairwise identity | Minimum match length | POA Length target | Length of the graph | Number of nodes | Number of edges |
+|---------|---------|---------|---------|---------|---------|---------|---------|
+| 1 | 5000 | 90 | 23 | 700,1100 | 89769 | 10922 | 14995 |
+| 2 | 5000 | 60 | 23 | 700,1100 | 89819 | 10902 | 14968 |
+| 3 | 100 | 90 | 23 | 700,1100 | 101211 | 8059 | 11062 |
+| 4 | 500 | 90 | 23 | 700,1100 | 92104 | 10511 | 14439 |
+| 5 | 10000 | 90 | 23 | 700,1100 | 89127 | 11024 | 15147 |
+| 6 | 20000 | 90 | 23 | 700,1100 | 89248 | 11105 | 15257 |
+| 7 | 100 | 60 | 23 | 700,1100 | 94040 | 9807 | 13466 |
+| 8 | 500 | 60 | 23 | 700,1100 | 88935 | 11184 | 15369 |
+
+: PGGB runs results
+
+The graphs decreased in size. 
+
+:::
+
+Which segment lengths do you think performed best? Why?
+
+Lets now modify the last parameter, lets run more rounds of normalization and increase the target sequence length for the partial order alignment. Lets do that for the graph create with 5,000bp and 10,000bp segment length.
+
+How does that effect graph statistics? 
+
+::: {.callout-tip collapse="true" icon = "false" appearance="simple"}
+
+### Answers
+
+| Run | Segment Length | Pairwise identity | Minimum match length | POA Length target | Length of the graph | Number of nodes | Number of edges |
+|---------|---------|---------|---------|---------|---------|---------|---------|
+| 1 | 5000 | 90 | 23 | 700,1100 | 89769 | 10922 | 14995 |
+| 2 | 5000 | 60 | 23 | 700,1100 | 89819 | 10902 | 14968 |
+| 3 | 100 | 90 | 23 | 700,1100 | 101211 | 8059 | 11062 |
+| 4 | 500 | 90 | 23 | 700,1100 | 92104 | 10511 | 14439 |
+| 5 | 10000 | 90 | 23 | 700,1100 | 89127 | 11024 | 15147 |
+| 6 | 20000 | 90 | 23 | 700,1100 | 89248 | 11105 | 15257 |
+| 7 | 100 | 60 | 23 | 700,1100 | 94040 | 9807 | 13466 |
+| 8 | 500 | 60 | 23 | 700,1100 | 88935 | 11184 | 15369 |
+| 9 | 5000 | 90 | 23 | 1400,1600,2000,2200 | 93070 | 10494 | 14418 |
+| 10 | 10000 | 90 | 23 |  1400,1600,2000,2200 | 92754 | 10554 | 14500 |
+
+: PGGB runs results
+
+The graphs are more compact, have fewer nodes and fewer edges and the file size is smaller but the graphs increase in length. smoothxg repeatedly breaks graph regions into POA blocks and realigns them. Initial induction sometimes over-aligns repeats or weak homologies. Later normalization rounds may “undo” some of those merges when they are inconsistent across paths. A graph that is easier to linearize, sort, or genotype against often requires more explicit structure. PGGB optimization is usually targeting alignment consistency and local ordering, not minimum graph size.
+
+:::
+
+Now lets have a look at all the visualisations. They are all created with odgi viz.
+
+The default associates a color with each path. This is stable across different runs of odgi viz. (viz_multiqc.png)
+
+We also have a view that shows the "self depth" across the graph. In this case there are no looping paths, so the color is always gray=1x. (viz_depth_multiqc.png)
+
+We can look at orientation of paths using two views.
+
+One shows the "position" of each path relative to the graph. It runs light to dark from 0 to path length. (viz_pos_multiqc.png)
+
+A similar view shows inverted regions of paths relative to the graph in red, while the forward orientation in black. (viz_inv_multiqc.png)
+
+And finally, a compressed view shows coverage across the pangenome coordinate space of all paths. It's a kind of heatmap. This helps when we have a lot of paths to consider (viz_O_multiqc.png)
+
+Do you see any inverted alignments in the graphs?
+

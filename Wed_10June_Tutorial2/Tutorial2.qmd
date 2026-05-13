@@ -110,35 +110,45 @@ First lets have a look at the parameters that one can specify with pggb for buil
 singularity exec pggb_latest.sif pggb -h
 ```
 
+### 3A. In-depth look at the parameters.
+
 Lets pay attention to a few of them.
 
 So to recall pggb runs the following steps:
 
 ![](pangenome_workflow.png)
 
-Look at the red line - the first step is an all-to-all alignment with wfmash. Secondly there is a graph inductions with seqwish and the final step performed with smoothxg which linearizes and simplifies the variation graphs using blocked partial order alignment (POA). Lets focus on these three steps.
+Look at the red line - the first step is an all-to-all alignment with wfmash. Secondly there is a graph induction with seqwish and the final step performed with smoothxg is when the graph is linearized and simplified using blocked partial order alignment (POA). Lets focus on these three steps.
 
-A. Two parameters are essential for defining the structure of the pangenome and are implemented in the first step (wfmash all-to-all mapping):
+#### i. All-to-all alignment.
+
+Two parameters are essential for defining the structure of the pangenome and are implemented in the first step (wfmash all-to-all mapping):
 
 --segment-length - default 5kb
 
---map-pct-id - default 0.90 or 90%
+--map-pct-id - default 90%
 
 Segment length defines the length of the mapped and aligned segments, provides a kind of minimum alignment length filter. The mashmap step in wfmash will only consider segments of this size, and require them to have an approximate pairwise identity of at least --map-pct-id.
 
-B. Next you have a set of parameters defined at the step of graph induction which is done with seqwish.
+#### ii. Graph induction
+
+Next you have a set of parameters defined at the step of graph induction which is performed with seqwish.
 
 --min-match-len - which is set by default to 23
 
 The min-match-len sets a filter for exact matches below this length during graph induction. The default setting of -k 23 is optimal up to around 5% divergence, and the authors suggest lowering it for higher divergence and increasing it for lower divergence. E.g. values up to -k 79 work well for human haplotypes. In effect, setting -k to N means that we can tolerate a local pairwise difference rate of no more than 1/N.
 
-C. Finally you have a set of parameters defined at the step run with smoothxg:
+#### iii. Graph ordering and simplification.
+
+Finally you have a set of parameters defined at the step run with smoothxg:
 
 --poa-length-target - it specifies the target sequence length for POA. The default is 700,1100 which means two rounds of normalization are performed first using target length of 700bp and next of 1100bp.
 
 --n-haplotypes - number of haplotypes you expect from the graph
 
-D. Then you have a set of parameters where you can specify what you want as the output:
+#### iv. Output
+
+Then you have a set of parameters where you can specify what you want as the output:
 
 --skip-viz - don't render visualizations of the graph in 1D and 2D \[default: make them\]
 
@@ -146,11 +156,21 @@ D. Then you have a set of parameters where you can specify what you want as the 
 
 -m, --multiqc - generate MultiQC report of graphs' statistics and visualizations, automatically runs odgi stats \[default: off\]
 
+These are generated with odgi.
+
+### 3B. Building a graph.
+
 Now we are ready to build our own graph. Lets start with everything set to default but include -S for printing graph statistics.
 
 ``` bash
 singularity exec pggb_latest.sif pggb -i data/Adh_Drosophila/chr2L_Adh.fasta -n 4 -t 16 -o Adh_pggb_default -S
 ```
+
+#### 3Bi. Default parameters.
+
+##### Questions
+
+Why did we set -n to 4? What is the size of the graph and how many nodes and edges does it have?
 
 Lets start filling out the following table - best if you create an excel table of your own and start filling it out on your own computer:
 
@@ -162,7 +182,7 @@ Lets start filling out the following table - best if you create an excel table o
 
 ::: {.callout-tip collapse="true" icon = "false" appearance="simple"}
 
-### Answers
+##### Answers
 
 | Run | Segment Length | Pairwise identity | Minimum match length | POA Length target | Length of the graph | Number of nodes | Number of edges |
 |---------|---------|---------|---------|---------|---------|---------|---------|
@@ -172,13 +192,17 @@ Lets start filling out the following table - best if you create an excel table o
 
 :::
 
-So we know from our previous analysis that *Drosophila suzuki* differs from other species by a lot more than 10%. Perhaps that has an influence on the alignment in this genomic region.
+#### 3Bii. Map-pct-id
 
-Lets change the pairwise identity to 60%.
+So we know from our previous analysis that *Drosophila suzuki* differs from other species by a lot more than 10%. Perhaps that has an influence on the alignment in this genomic region or maybe the divergence is actually 10%.
+
+Lets change the pairwise identity to 60%. Check the graph statistics and then compare with the MinHash Distance (approximate divergence) [here](pairwise_dist.txt).
 
 ``` bash
-singularity exec pggb_latest.sif pggb -i data/Adh_Drosophila/chr2L_Adh.fasta --map-pct-id 0.6 -n 4 -t 16 -o Adh_pggb_p60 -S
+singularity exec pggb_latest.sif pggb -i data/Adh_Drosophila/chr2L_Adh.fasta --map-pct-id 60 -n 4 -t 16 -o Adh_pggb_p60 -S
 ```
+
+##### Questions
 
 What do you observe? What is your conclusion - should we stick with 60% of go with 90%?
 
@@ -188,7 +212,7 @@ What do you observe? What is your conclusion - should we stick with 60% of go wi
 
 ::: {.callout-tip collapse="true" icon = "false" appearance="simple"}
 
-### Answers
+##### Answers
 
 | Run | Segment Length | Pairwise identity | Minimum match length | POA Length target | Length of the graph | Number of nodes | Number of edges |
 |---------|---------|---------|---------|---------|---------|---------|---------|
@@ -201,14 +225,19 @@ The structure of the graph changed minimally, actually the size of the graph inc
 
 :::
 
+#### 3Biii. Segment-length.
 
-Now lets start changing the segment length, lets test a much smaller segment length of 100bp, 500bp and then lets go with one twice and four times as much as the default - 10,000bp and 20,000bp.
+Now lets start changing the length of the mapped and aligned segments, lets test a much smaller segment length of 100bp, 500bp and then lets go with one twice and four times as much as the default - 10,000bp and 20,000bp.
+
+Use the command below but make sure to change the parameters in \<\>.
 
 ``` bash
-singularity exec pggb_latest.sif pggb -i data/Adh_Drosophila/chr2L_Adh.fasta --segement-length <here_put_the_length> -n 4 -t 16 -o Adh_pggb_s10k -S
+singularity exec pggb_latest.sif pggb -i data/Adh_Drosophila/chr2L_Adh.fasta --segement-length <here_put_the_length> -n 4 -t 16 -o Adh_pggb_<define_the_name> -S
 ```
 
-Fill out the table! What do you see?
+##### Questions
+
+Fill out the table! How did that affect graph statistics? What is the difference between graphs built using the smaller and the larger segment lengths relative to the default? Why do you think that is?
 
 | Run | Segment Length | Pairwise identity | Minimum match length | POA Length target | Length of the graph | Number of nodes | Number of edges |
 |---------|---------|---------|---------|---------|---------|---------|---------|
@@ -217,11 +246,9 @@ Fill out the table! What do you see?
 | 5 | 10000 | 90 | 23 | 700,1100 |  |  |  |
 | 6 | 20000 | 90 | 23 | 700,1100 |  |  |  |
 
-What is the difference between the smaller and the larger graph lengths? Why do you think that is? 
-
 ::: {.callout-tip collapse="true" icon = "false" appearance="simple"}
 
-### Answers
+##### Answers
 
 | Run | Segment Length | Pairwise identity | Minimum match length | POA Length target | Length of the graph | Number of nodes | Number of edges |
 |---------|---------|---------|---------|---------|---------|---------|---------|
@@ -234,18 +261,27 @@ What is the difference between the smaller and the larger graph lengths? Why do 
 
 : PGGB runs results
 
-The graphs with smaller segment length are greater in length than graphs with greater segment length. 
+The graphs with smaller segment length are greater in length than graphs with greater segment length.
 
 If you keep identity fixed at 90%:
 
-with -s 100, an alignment needs 90 matching bp within a 100 bp segment,
-with -s 10000, it needs 9000 matching bp across the entire segment.
+with -s 100, an alignment needs 90 matching bp within a 100 bp segment, with -s 10000, it needs 9000 matching bp across the entire segment.
 
 So smaller segment lengths increase alignment sensitivity and create a more fragmented graph.
 
 :::
 
-Lets try decreasing percentage identity for the graphs with smaller segment length, lets try 60% - do you see any change?
+#### 3Biv. Segment-length + map-pct-id
+
+Lets try decreasing percentage identity for the graphs with smaller segment length (100 and 500 bp), lets try 60%.
+
+``` bash
+singularity exec pggb_latest.sif pggb -i data/Adh_Drosophila/chr2L_Adh.fasta --segement-length <here_put_the_length> --map-pct-id 60 -n 4 -t 16 -o Adh_pggb_<define_the_name> -S
+```
+
+##### Questions
+
+Do you see any change? Which combinations of parameters do you think performed best? Why?
 
 | Run | Segment Length | Pairwise identity | Minimum match length | POA Length target | Length of the graph | Number of nodes | Number of edges |
 |---------|---------|---------|---------|---------|---------|---------|---------|
@@ -254,7 +290,7 @@ Lets try decreasing percentage identity for the graphs with smaller segment leng
 
 ::: {.callout-tip collapse="true" icon = "false" appearance="simple"}
 
-### Answers
+##### Answers
 
 | Run | Segment Length | Pairwise identity | Minimum match length | POA Length target | Length of the graph | Number of nodes | Number of edges |
 |---------|---------|---------|---------|---------|---------|---------|---------|
@@ -269,19 +305,30 @@ Lets try decreasing percentage identity for the graphs with smaller segment leng
 
 : PGGB runs results
 
-The graphs decreased in size. 
+The graphs decreased in size. The best graphs are still segment-length of 5 or 10kb and the divergence of 90%.
 
 :::
 
-Which segment lengths do you think performed best? Why?
+#### 3Bv. Poa-length-target
 
-Lets now modify the last parameter, lets run more rounds of normalization and increase the target sequence length for the partial order alignment. Lets do that for the graph create with 5,000bp and 10,000bp segment length.
+Lets now modify the last parameter, lets run more rounds of normalization and increase the target sequence length for the partial order alignment. Lets do that for the graphs created with 5,000bp and 10,000bp segment length. By default poa target length is set to 700 and 1100bp. Lets increase that and lets carry out 4 rounds of normalization.
 
-How does that effect graph statistics? 
+``` bash
+singularity exec pggb_latest.sif pggb -i data/Adh_Drosophila/chr2L_Adh.fasta --segement-length <here_put_the_length> --map-pct-id 90 -G 1400,1600,2000,2200 -n 4 -t 16 -o Adh_pggb_<define_the_name> -S
+```
+
+##### Questions
+
+How does that effect graph statistics? How did that effect run time?
+
+| Run | Segment Length | Pairwise identity | Minimum match length | POA Length target | Length of the graph | Number of nodes | Number of edges |
+|---------|---------|---------|---------|---------|---------|---------|---------|
+| 7 | 5000 | 90 | 23 | 1400,1600,2000,2200 |  |  |  |
+| 8 | 10000 | 90 | 23 | 1400,1600,2000,2200 |  |  |  |
 
 ::: {.callout-tip collapse="true" icon = "false" appearance="simple"}
 
-### Answers
+##### Answers
 
 | Run | Segment Length | Pairwise identity | Minimum match length | POA Length target | Length of the graph | Number of nodes | Number of edges |
 |---------|---------|---------|---------|---------|---------|---------|---------|
@@ -294,7 +341,7 @@ How does that effect graph statistics?
 | 7 | 100 | 60 | 23 | 700,1100 | 94040 | 9807 | 13466 |
 | 8 | 500 | 60 | 23 | 700,1100 | 88935 | 11184 | 15369 |
 | 9 | 5000 | 90 | 23 | 1400,1600,2000,2200 | 93070 | 10494 | 14418 |
-| 10 | 10000 | 90 | 23 |  1400,1600,2000,2200 | 92754 | 10554 | 14500 |
+| 10 | 10000 | 90 | 23 | 1400,1600,2000,2200 | 92754 | 10554 | 14500 |
 
 : PGGB runs results
 
@@ -302,19 +349,52 @@ The graphs are more compact, have fewer nodes and fewer edges and the file size 
 
 :::
 
-Now lets have a look at all the visualisations. They are all created with odgi viz.
+#### 3Bvi. Visualisations of your graphs.
+
+Now lets have a look at all the visualizations. They are all created with odgi viz. Here I show the default parameters graph with 4 rounds of normalization.
 
 The default associates a color with each path. This is stable across different runs of odgi viz. (viz_multiqc.png)
 
+![](images/Adh_chr2L.fasta.3d73c94.11fba48.34b343f.smooth.final.og.viz_multiqc.png){width="676"}
+
 We also have a view that shows the "self depth" across the graph. In this case there are no looping paths, so the color is always gray=1x. (viz_depth_multiqc.png)
+
+![](images/Adh_chr2L.fasta.3d73c94.11fba48.34b343f.smooth.final.og.viz_depth_multiqc.png)
 
 We can look at orientation of paths using two views.
 
 One shows the "position" of each path relative to the graph. It runs light to dark from 0 to path length. (viz_pos_multiqc.png)
 
+![](images/Adh_chr2L.fasta.3d73c94.11fba48.34b343f.smooth.final.og.viz_pos_multiqc.png)
+
 A similar view shows inverted regions of paths relative to the graph in red, while the forward orientation in black. (viz_inv_multiqc.png)
+
+![](images/Adh_chr2L.fasta.3d73c94.11fba48.34b343f.smooth.final.og.viz_inv_multiqc.png)
 
 And finally, a compressed view shows coverage across the pangenome coordinate space of all paths. It's a kind of heatmap. This helps when we have a lot of paths to consider (viz_O_multiqc.png)
 
+![](images/Adh_chr2L.fasta.3d73c94.11fba48.34b343f.smooth.final.og.viz_O_multiqc.png)
+
+##### Questions
+
 Do you see any inverted alignments in the graphs?
 
+I created a graph for you from the multiple sequence alignment performed with MAFFT.
+
+I first ran MAFFT and then I ran the following code. If you want you can run the commands yourself and create your own visualization. The data you need is in your folder data/MSA.fasta.
+
+``` bash
+singularity exec pggb_march_2026.sif vg construct --msa MSA.fasta > graph.vg
+singularity exec pggb_march_2026.sif vg convert -f -W graph.vg > graph.gfa
+singularity exec pggb_march_2026.sif odgi unchop -i graph.gfa -o - | singularity exec pggb_march_2026.sif odgi sort -i - -o - | singularity exec pggb_march_2026.sif odgi view -i - -g > graph.mod.gfa
+singularity exec pggb_march_2026.sif odgi build -g graph.mod.gfa --sort -o graph.og 
+singularity exec pggb_march_2026.sif odgi viz -i graph.og -o graph.png
+```
+
+Do you see a similarity in the structure of the graph and the MSA?
+
+![](images/graph.png)
+
+### 4. BONUS 
+
+Now that you have your table, you can keep on going and editing other parameters. In the end you can plot the graph lengths of graphs constructed with different parameter sets using R (ggplot2) and you can compare visualisations.

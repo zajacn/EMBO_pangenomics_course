@@ -232,7 +232,7 @@ Now lets start changing the length of the mapped and aligned segments, lets test
 Use the command below but make sure to change the parameters in \<\>.
 
 ``` bash
-singularity exec pggb_latest.sif pggb -i data/Adh_Drosophila/chr2L_Adh.fasta --segement-length <here_put_the_length> -n 4 -t 16 -o Adh_pggb_<define_the_name> -S
+singularity exec pggb_latest.sif pggb -i data/Adh_Drosophila/chr2L_Adh.fasta --segment-length <here_put_the_length> -n 4 -t 16 -o Adh_pggb_<define_the_name> -S
 ```
 
 ##### Questions
@@ -276,7 +276,7 @@ So smaller segment lengths increase alignment sensitivity and create a more frag
 Lets try decreasing percentage identity for the graphs with smaller segment length (100 and 500 bp), lets try 60%.
 
 ``` bash
-singularity exec pggb_latest.sif pggb -i data/Adh_Drosophila/chr2L_Adh.fasta --segement-length <here_put_the_length> --map-pct-id 60 -n 4 -t 16 -o Adh_pggb_<define_the_name> -S
+singularity exec pggb_latest.sif pggb -i data/Adh_Drosophila/chr2L_Adh.fasta --segment-length <here_put_the_length> --map-pct-id 60 -n 4 -t 16 -o Adh_pggb_<define_the_name> -S
 ```
 
 ##### Questions
@@ -314,7 +314,7 @@ The graphs decreased in size. The best graphs are still segment-length of 5 or 1
 Lets now modify the last parameter, lets run more rounds of normalization and increase the target sequence length for the partial order alignment. Lets do that for the graphs created with 5,000bp and 10,000bp segment length. By default poa target length is set to 700 and 1100bp. Lets increase that and lets carry out 4 rounds of normalization.
 
 ``` bash
-singularity exec pggb_latest.sif pggb -i data/Adh_Drosophila/chr2L_Adh.fasta --segement-length <here_put_the_length> --map-pct-id 90 -G 1400,1600,2000,2200 -n 4 -t 16 -o Adh_pggb_<define_the_name> -S
+singularity exec pggb_latest.sif pggb -i data/Adh_Drosophila/chr2L_Adh.fasta --segment-length <here_put_the_length> --map-pct-id 90 -G 1400,1600,2000,2200 -n 4 -t 16 -o Adh_pggb_<define_the_name> -S
 ```
 
 ##### Questions

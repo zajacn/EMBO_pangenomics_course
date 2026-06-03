@@ -183,6 +183,7 @@ Lets compare the orgnaization of the genomes using synteny analysis. For this we
 cd ..
 mkdir ntsynt
 cd ntsynt
+conda activate pangenomics #if you deactivated it previously
 ntSynt -d 15 ../data/Drosophila*.fasta #this might take at most 10min
 genome_to_colour=$(head -n1 ntSynt.k24.w1000.synteny_blocks.tsv | cut -f2) 
 SOFTWARE_DIR= #to change
@@ -195,7 +196,7 @@ Run some statistics. Have a look at the column Average_coverage.
 python $SOFTWARE_DIR/ntSynt/analysis_scripts/denovo_synteny_block_stats.py --tsv ntSynt.k24.w1000.synteny_blocks.tsv --fai *.fai
 ```
 
-Now the code below will help you visualize the synteny. If you download the ggggenomes_viz.sequence_lengths.tsv and ggggenomes_viz.links.tsv you can use the code below to visualise it on your own in R.
+Now the code below will help you visualize the synteny. If you download the ggggenomes_viz.sequence_lengths.tsv and ggggenomes_viz.links.tsv (it is in the data/ folder) you can use the code below to visualise it on your own in R.
 
 ::: {.callout-tip collapse="true" icon = "false" appearance="simple"}
 

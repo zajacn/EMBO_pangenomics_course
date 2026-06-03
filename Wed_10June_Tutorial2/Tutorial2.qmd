@@ -35,14 +35,22 @@ In this exercise we will construct a tiny pangenome variation graph with vg cons
 We will construct a graph from a sequence in fasta file format and then inject a set of variants in a VCF format that will be inserted into the graph as additional nodes.
 
 ``` bash
-singularity exec pggb_latest.sif vg construct -r tiny.fasta -v tiny.vcf.gz > tiny.vg
+mkdir vg 
+cd vg
+singularity exec ../pggb.sif vg construct -r ../data/vg/tiny.fasta -v ../data/vg/tiny.vcf.gz > tiny.vg
 ```
 
 Lets visualise this graph. Run both of these commands below. The difference between them is only -S.
 
 ``` bash
-singularity exec pggb_latest.sif vg view -dp tiny.vg | dot -T jpeg -o tiny.sequences.jpeg
-singularity exec pggb_latest.sif vg view -dpS tiny.vg | dot -T jpeg -o tiny.sequence_lengths.jpeg
+singularity exec ../pggb.sif vg view -dp tiny.vg | dot -T jpeg -o tiny.sequences.jpeg
+singularity exec ../pggb.sif vg view -dpS tiny.vg | dot -T jpeg -o tiny.sequence_lengths.jpeg
+```
+
+Copy the graph visualisations to your local computer:
+
+``` bash
+scp 
 ```
 
 ### Questions
@@ -54,7 +62,7 @@ What is the difference between the two graphs you visualized?
 Why are some sequences broken down into separate nodes even though there are no variants between them - how long are these nodes? why do you think that is? To get an idea run and look at the different parameters are the dafults for those parameters:
 
 ``` bash
-singularity exec pggb_latest.sif vg construct -h
+singularity exec ../pggb.sif vg construct -h
 ```
 
 ::: {.callout-tip collapse="true" icon = "false" appearance="simple"}
@@ -72,7 +80,7 @@ The -m parameters specifies a limit the maximum allowable node sequence size (de
 Now lets convert our tiny graph into a gfa file, the type of file format the pggb graph comes in. With the commands below you create and also display the file.
 
 ``` bash
-singularity exec pggb_latest.sif vg view tiny.vg > tiny.gfa
+singularity exec ../pggb.sif vg view tiny.vg > tiny.gfa
 cat tiny.gfa
 ```
 
@@ -107,7 +115,7 @@ To built a "real" pangenome graph we will now use a subset of sequences from our
 First lets have a look at the parameters that one can specify with pggb for building a pangenome graph:
 
 ``` bash
-singularity exec pggb_latest.sif pggb -h
+singularity exec ../pggb.sif pggb -h
 ```
 
 ### 3A. In-depth look at the parameters.
@@ -163,7 +171,9 @@ These are generated with odgi.
 Now we are ready to build our own graph. Lets start with everything set to default but include -S for printing graph statistics.
 
 ``` bash
-singularity exec pggb_latest.sif pggb -i data/Adh_Drosophila/chr2L_Adh.fasta -n 4 -t 16 -o Adh_pggb_default -S
+mkdir pggb
+cd pggb
+singularity exec ../pggb.sif pggb -i ../data/pggb/Adh_chr2L.fasta -n 4 -t 16 -o Adh_pggb_default -S
 ```
 
 #### 3Bi. Default parameters.
@@ -199,7 +209,7 @@ So we know from our previous analysis that *Drosophila suzuki* differs from othe
 Lets change the pairwise identity to 60%. Check the graph statistics and then compare with the MinHash Distance (approximate divergence) [here](pairwise_dist.txt).
 
 ``` bash
-singularity exec pggb_latest.sif pggb -i data/Adh_Drosophila/chr2L_Adh.fasta --map-pct-id 60 -n 4 -t 16 -o Adh_pggb_p60 -S
+singularity exec ../pggb.sif pggb -i ../data/pggb/Adh_chr2L.fasta --map-pct-id 60 -n 4 -t 16 -o Adh_pggb_p60 -S
 ```
 
 ##### Questions
@@ -232,7 +242,7 @@ Now lets start changing the length of the mapped and aligned segments, lets test
 Use the command below but make sure to change the parameters in \<\>.
 
 ``` bash
-singularity exec pggb_latest.sif pggb -i data/Adh_Drosophila/chr2L_Adh.fasta --segment-length <here_put_the_length> -n 4 -t 16 -o Adh_pggb_<define_the_name> -S
+singularity exec ../pggb.sif pggb -i ../data/pggb/Adh_chr2L.fasta --segment-length <here_put_the_length> -n 4 -t 16 -o Adh_pggb_<define_the_name> -S
 ```
 
 ##### Questions
@@ -276,7 +286,7 @@ So smaller segment lengths increase alignment sensitivity and create a more frag
 Lets try decreasing percentage identity for the graphs with smaller segment length (100 and 500 bp), lets try 60%.
 
 ``` bash
-singularity exec pggb_latest.sif pggb -i data/Adh_Drosophila/chr2L_Adh.fasta --segment-length <here_put_the_length> --map-pct-id 60 -n 4 -t 16 -o Adh_pggb_<define_the_name> -S
+singularity exec ../pggb.sif pggb -i ../data/pggb/Adh_chr2L.fasta --segment-length <here_put_the_length> --map-pct-id 60 -n 4 -t 16 -o Adh_pggb_<define_the_name> -S
 ```
 
 ##### Questions
@@ -314,7 +324,7 @@ The graphs decreased in size. The best graphs are still segment-length of 5 or 1
 Lets now modify the last parameter, lets run more rounds of normalization and increase the target sequence length for the partial order alignment. Lets do that for the graphs created with 5,000bp and 10,000bp segment length. By default poa target length is set to 700 and 1100bp. Lets increase that and lets carry out 4 rounds of normalization.
 
 ``` bash
-singularity exec pggb_latest.sif pggb -i data/Adh_Drosophila/chr2L_Adh.fasta --segment-length <here_put_the_length> --map-pct-id 90 -G 1400,1600,2000,2200 -n 4 -t 16 -o Adh_pggb_<define_the_name> -S
+singularity exec ../pggb.sif pggb -i ../data/pggb/Adh_chr2L.fasta --segment-length <here_put_the_length> --map-pct-id 90 -G 1400,1600,2000,2200 -n 4 -t 16 -o Adh_pggb_<define_the_name> -S
 ```
 
 ##### Questions
@@ -384,11 +394,11 @@ I created a graph for you from the multiple sequence alignment performed with MA
 I first ran MAFFT and then I ran the following code. If you want you can run the commands yourself and create your own visualization. The data you need is in your folder data/MSA.fasta.
 
 ``` bash
-singularity exec pggb_march_2026.sif vg construct --msa MSA.fasta > graph.vg
-singularity exec pggb_march_2026.sif vg convert -f -W graph.vg > graph.gfa
-singularity exec pggb_march_2026.sif odgi unchop -i graph.gfa -o - | singularity exec pggb_march_2026.sif odgi sort -i - -o - | singularity exec pggb_march_2026.sif odgi view -i - -g > graph.mod.gfa
-singularity exec pggb_march_2026.sif odgi build -g graph.mod.gfa --sort -o graph.og 
-singularity exec pggb_march_2026.sif odgi viz -i graph.og -o graph.png
+singularity exec ../pggb.sif vg construct --msa MSA.fasta > graph.vg
+singularity exec ../pggb.sif vg convert -f -W graph.vg > graph.gfa
+singularity exec ../pggb.sif odgi unchop -i graph.gfa -o - | singularity exec ../pggb.sif odgi sort -i - -o - | singularity exec ../pggb.sif odgi view -i - -g > graph.mod.gfa
+singularity exec ../pggb.sif odgi build -g graph.mod.gfa --sort -o graph.og 
+singularity exec ../pggb.sif odgi viz -i graph.og -o graph.png
 ```
 
 Do you see a similarity in the structure of the graph and the MSA?

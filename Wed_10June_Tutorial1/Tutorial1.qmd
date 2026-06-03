@@ -26,8 +26,15 @@ bibliography: references.bib
 
 knitr::opts_knit$set(root.dir = getwd())
 ```
+After you log in to the server check if you have the folder "data" present in your home directory. You will be working in groups of 3.
+In this tutorial we will be running software on the server using the files in the data folder and then looking at the output by looking at the figures embedded in this markdown. 
 
-Navigate to the correct directory
+If you would like to look at the figures you generated or if you would like to run the R code copy the files to your computer like so:
+
+```{bash}
+scp -r ubuntu@pangenomics-vm-1:~/data .
+scp ubuntu@pangenomics-vm-1:~/<path-to-generated-file> .
+```
 
 ## Learning objectives
 
@@ -92,14 +99,18 @@ Jaccard Similarity Index - a statistical measure used to quantify how similar tw
 In the command line run the code below to do so. The k-mer length used for the analysis is 25bp.
 
 ``` bash
+cd ~
+mkdir pankmer
 cd pankmer
-conda activate pankmer
-pankmer adj-matrix -i Drosophila_index.tar -o Drosophila_index_adj_matrix.csv
+conda activate pangenomics
+pankmer adj-matrix -i ../data/pankmer/Drosophila_index.tar -o Drosophila_index_adj_matrix.csv
 pankmer clustermap -i Drosophila_index_adj_matrix.csv --metric jaccard -o Drosophila_jaccard.svg
-pankmer upset -i Drosophila_index.tar -o Drosophila_index_upset.svg -g Drosophila_melanogaster_GCF_000001215.4 Drosophila_simulans_GCF_016746395.2 Drosophila_sechellia_GCF_004382195.2 Drosophila_suzuki_GCF_043229965.1
+pankmer upset -i ../data/pankmer/Drosophila_index.tar -o Drosophila_index_upset.svg -g Drosophila_melanogaster_GCF_000001215.4 Drosophila_simulans_GCF_016746395.2 Drosophila_sechellia_GCF_004382195.2 Drosophila_suzuki_GCF_043229965.1
 ```
 
-Lets look at the plots you generated. First one shows the Jaccard Similarity Index.
+Lets look at the plots you generated. You can copy the plots to your computer or just have a look at the ones below.
+
+First one shows the Jaccard Similarity Index.
 
 <details class="image-toggle">
 
@@ -125,14 +136,14 @@ What are your conclusions? Which two species are most similar? What is the range
 
 ## 2. Alignments - How well do genomes map to each other?
 
-So we already know the species differ quite a bit. Lets have a look how that divergence affects quality of pairwise alignments. I used minimap2 to map all genomes to *Drosophila melanogaster* as a reference and then to *Drosophila suzuki* as a reference. The mapping was done in the following way and the stats were obtained with paftools:
+So we already know the species differ quite a bit. Lets have a look how that divergence affects quality of pairwise alignments. I used minimap2 to map all genomes to *Drosophila melanogaster* as a reference and then to *Drosophila suzuki* as a reference. The mapping was done in the following way and the stats were obtained with paftools (DON'T RUN):
 
 ``` bash
 minimap2 -x asm20 -c --eqx --secondary=no
 k8-1.2/k8-x86_64-Linux paftools.js stat
 ```
 
-Lets look at the percentage of each genome that actually mapped.
+The paf statistics are in data/paf_stats. Lets look at the percentage of each genome that actually mapped.
 
 ::: {.callout-tip collapse="true" icon = "false" appearance="simple"}
 
@@ -144,9 +155,9 @@ library(tidyverse)
 library(dplyr)
 
 all = NULL
-for (i in list.files("data/", pattern = "paf.stats")){
+for (i in list.files("data/paf_stats", pattern = "paf.stats")){
   name = str_remove(i, ".paf.stats")
-  df = read.delim(paste0("data/", i), sep = ":", header = F)
+  df = read.delim(paste0("data/paf_stats", i), sep = ":", header = F)
   all = rbind(all, data.frame("comparison" = name, "mapping_rate" = df[c(6),]$V2 * 100/df[c(5),]$V2))
 }
 all = all %>% separate(comparison, into = c("target", "query"), sep = "_")
@@ -170,10 +181,11 @@ Lets compare the orgnaization of the genomes using synteny analysis. For this we
 
 ``` bash
 cd ..
+mkdir ntsynt
 cd ntsynt
-ntSynt -d 15 ../data/*.fasta #this might take at most 10min
+ntSynt -d 15 ../data/Drosophila*.fasta #this might take at most 10min
 genome_to_colour=$(head -n1 ntSynt.k24.w1000.synteny_blocks.tsv | cut -f2) 
-SOFTWARE_DIR=/home/zajac/scripts/Software #to change
+SOFTWARE_DIR= #to change
 python $SOFTWARE_DIR/ntSynt/visualization_scripts/format_blocks_gggenomes.py --blocks ntSynt.k24.w1000.synteny_blocks.tsv -p ggggenomes_viz --colour $genome_to_colour --fai *.fai
 ```
 
@@ -207,9 +219,9 @@ library(ggplot2)
 library(ggh4x)
 
 args = NULL
-args$sequences = "data/ggggenomes_viz.sequence_lengths.tsv"
-args$links = "data/ggggenomes_viz.links.tsv"
-args$scale = 10000 
+args$sequences = "data/ntsynt/ggggenomes_viz.sequence_lengths.tsv"
+args$links = "data/ntsynt/ggggenomes_viz.links.tsv"
+args$scale = 10000 #scale bar can be changed
 
 # Read in and prepare sequences
 sequences <- read.csv(args$sequences, sep = "\t", header = TRUE)
@@ -296,7 +308,7 @@ library(reshape2)
 
 synteny = NULL
 variants = NULL
-syri_summary_files = list.files("data/", patter = "summary")
+syri_summary_files = list.files("data/syri/", patter = "summary")
 n=1
 for (i in syri_summary_files){
   query = sapply(str_split(str_remove(i, "syri.summary"), "_"), .subset, 2)
@@ -330,7 +342,7 @@ Why are there so few variants observed between *Drosophila melanogaster* and *Dr
 
 ## 5. Repeats and Transposable Elements - how much of the complexity is due to them
 
-In order to understand if the poor mapping quality or the low genome composition similarity is due to repetitive content of the genome I annotated repeats with RepeatModeler and RepeatMasker. I ran the following code for you already:
+In order to understand if the poor mapping quality or the low genome composition similarity is due to repetitive content of the genome I annotated repeats with RepeatModeler and RepeatMasker. I ran the following code for you already (DON'T RUN):
 
 ``` bash
 singularity exec --cleanenv dfam-tetools-latest.sif BuildDatabase -name ${name}.db data/${name}.fasta # Build the database
@@ -349,8 +361,8 @@ Here we compare the output.
 #| fig-width: 20
 
 
-files_fai = list.files("data/", patter = "fai")
-genomes_sizes = lapply(files_fai, function(x){tail(read.delim(paste0("data/", x), header = F), n= 1)$V3})
+files_fai = list.files("data/", pattern = "fai")
+genomes_sizes = lapply(files_fai, function(x){tail(read.delim(paste0("data/",x), header = F), n= 1)$V3})
 names(genomes_sizes) = files_fai
 genomes_sizes = data.frame(genomes_size = t(as.data.frame(genomes_sizes)))
 genomes_sizes$genome = str_remove(rownames(genomes_sizes), ".fai")
@@ -382,7 +394,7 @@ Lets look at the mapping of the sex chromosome between the 4 species using SVbyE
 
 ```{r}
 library(SVbyEye)
-paf.table = readRDS("data/chrX.paf.rds")
+paf.table = readRDS("data/svbyeye/chrX.paf.rds")
 
 plotAVA(
     paf.table = paf.table, color.by = "direction", seqnames.order = c("DroSech#1#X","DroMel#1#X", "DroSim#1#X")

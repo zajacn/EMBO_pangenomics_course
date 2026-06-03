@@ -196,10 +196,11 @@ Lets start filling out the following table - best if you create an excel table o
 
 | Run | Segment Length | Pairwise identity | Minimum match length | POA Length target | Length of the graph | Number of nodes | Number of edges |
 |---------|---------|---------|---------|---------|---------|---------|---------|
-| 1 | 5000 | 90 | 23 | 700,1100 | 107393 | 3214 | 4316 |
+| 1 | 5000 | 90 | 23 | 700,1100 | 89425 | 11024 | 15132 |
 
 : PGGB runs results
 
+Note your results will not be the same as my results.
 :::
 
 #### 3Bii. Map-pct-id
@@ -226,12 +227,12 @@ What do you observe? What is your conclusion - should we stick with 60% of go wi
 
 | Run | Segment Length | Pairwise identity | Minimum match length | POA Length target | Length of the graph | Number of nodes | Number of edges |
 |---------|---------|---------|---------|---------|---------|---------|---------|
-| 1 | 5000 | 90 | 23 | 700,1100 | 89769 | 10922 | 14995 |
-| 2 | 5000 | 60 | 23 | 700,1100 | 89819 | 10902 | 14968 |
+| 1 | 5000 | 90 | 23 | 700,1100 | 89425 | 11024 | 15132 |
+| 2 | 5000 | 60 | 23 | 700,1100 | 89391 | 10927 | 14996 |
 
 : PGGB runs results
 
-The structure of the graph changed minimally, actually the size of the graph increased so it appears the p equals to 90% was already a good choice. Lets stick with that then.
+The structure of the graph changed minimally so it appears the p equals to 90% was already a good choice. Lets stick with that then.
 
 :::
 
@@ -242,7 +243,7 @@ Now lets start changing the length of the mapped and aligned segments, lets test
 Use the command below but make sure to change the parameters in \<\>.
 
 ``` bash
-singularity exec ../pggb.sif pggb -i ../data/pggb/Adh_chr2L.fasta --segment-length <here_put_the_length> -n 4 -t 16 -o Adh_pggb_<define_the_name> -S
+for i in 100 500 10000 20000; do singularity exec ../pggb.sif pggb -i ../data/pggb/Adh_chr2L.fasta --segment-length $i -n 4 -t 16 -o Adh_pggb_s${i} -S; done
 ```
 
 ##### Questions
@@ -262,12 +263,12 @@ Fill out the table! How did that affect graph statistics? What is the difference
 
 | Run | Segment Length | Pairwise identity | Minimum match length | POA Length target | Length of the graph | Number of nodes | Number of edges |
 |---------|---------|---------|---------|---------|---------|---------|---------|
-| 1 | 5000 | 90 | 23 | 700,1100 | 89769 | 10922 | 14995 |
-| 2 | 5000 | 60 | 23 | 700,1100 | 89819 | 10902 | 14968 |
-| 3 | 100 | 90 | 23 | 700,1100 | 101211 | 8059 | 11062 |
-| 4 | 500 | 90 | 23 | 700,1100 | 92104 | 10511 | 14439 |
-| 5 | 10000 | 90 | 23 | 700,1100 | 89127 | 11024 | 15147 |
-| 6 | 20000 | 90 | 23 | 700,1100 | 89248 | 11105 | 15257 |
+| 1 | 5000 | 90 | 23 | 700,1100 | 89425 | 11024 | 15132 |
+| 2 | 5000 | 60 | 23 | 700,1100 | 89391 | 10927 | 14996 |
+| 3 | 100 | 90 | 23 | 700,1100 | 101444 | 7917 | 10869 |
+| 4 | 500 | 90 | 23 | 700,1100 | 92449 | 10340 | 14198 |
+| 5 | 10000 | 90 | 23 | 700,1100 | 89816 | 10913 | 14982 |
+| 6 | 20000 | 90 | 23 | 700,1100 | 89846 | 10846 | 14885 |
 
 : PGGB runs results
 
@@ -286,7 +287,7 @@ So smaller segment lengths increase alignment sensitivity and create a more frag
 Lets try decreasing percentage identity for the graphs with smaller segment length (100 and 500 bp), lets try 60%.
 
 ``` bash
-singularity exec ../pggb.sif pggb -i ../data/pggb/Adh_chr2L.fasta --segment-length <here_put_the_length> --map-pct-id 60 -n 4 -t 16 -o Adh_pggb_<define_the_name> -S
+for i in 100 500; do singularity exec ../pggb.sif pggb -i ../data/pggb/Adh_chr2L.fasta --segment-length $i --map-pct-id 60 -n 4 -t 16 -o Adh_pggb_s${i}_p60 -S; done
 ```
 
 ##### Questions
@@ -304,27 +305,28 @@ Do you see any change? Which combinations of parameters do you think performed b
 
 | Run | Segment Length | Pairwise identity | Minimum match length | POA Length target | Length of the graph | Number of nodes | Number of edges |
 |---------|---------|---------|---------|---------|---------|---------|---------|
-| 1 | 5000 | 90 | 23 | 700,1100 | 89769 | 10922 | 14995 |
-| 2 | 5000 | 60 | 23 | 700,1100 | 89819 | 10902 | 14968 |
-| 3 | 100 | 90 | 23 | 700,1100 | 101211 | 8059 | 11062 |
-| 4 | 500 | 90 | 23 | 700,1100 | 92104 | 10511 | 14439 |
-| 5 | 10000 | 90 | 23 | 700,1100 | 89127 | 11024 | 15147 |
-| 6 | 20000 | 90 | 23 | 700,1100 | 89248 | 11105 | 15257 |
-| 7 | 100 | 60 | 23 | 700,1100 | 94040 | 9807 | 13466 |
-| 8 | 500 | 60 | 23 | 700,1100 | 88935 | 11184 | 15369 |
+| 1 | 5000 | 90 | 23 | 700,1100 | 89425 | 11024 | 15132 |
+| 2 | 5000 | 60 | 23 | 700,1100 | 89391 | 10927 | 14996 |
+| 3 | 100 | 90 | 23 | 700,1100 | 101444 | 7917 | 10869 |
+| 4 | 500 | 90 | 23 | 700,1100 | 92449 | 10340 | 14198 |
+| 5 | 10000 | 90 | 23 | 700,1100 | 89816 | 10913 | 14982 |
+| 6 | 20000 | 90 | 23 | 700,1100 | 89846 | 10846 | 14885 |
+| 7 | 100 | 60 | 23 | 700,1100 | 94016 | 9798 | 13454 |
+| 8 | 500 | 60 | 23 | 700,1100 | 89042 | 11149 | 15320 |
 
 : PGGB runs results
 
-The graphs decreased in size. The best graphs are still segment-length of 5 or 10kb and the divergence of 90%.
+The graphs decreased in size and are now more similar to those of segment-length of 5 or 10kb and the divergence of 90%.
 
 :::
 
 #### 3Bv. Poa-length-target
 
-Lets now modify the last parameter, lets run more rounds of normalization and increase the target sequence length for the partial order alignment. Lets do that for the graphs created with 5,000bp and 10,000bp segment length. By default poa target length is set to 700 and 1100bp. Lets increase that and lets carry out 4 rounds of normalization.
+Lets now modify the last parameter, lets run more rounds of normalization and increase the target sequence length for the partial order alignment. Lets do that for the graphs created with 500bp and 10,000bp segment length. By default poa target length is set to 700 and 1100bp. Lets increase that and lets carry out 4 rounds of normalization.
 
 ``` bash
-singularity exec ../pggb.sif pggb -i ../data/pggb/Adh_chr2L.fasta --segment-length <here_put_the_length> --map-pct-id 90 -G 1400,1600,2000,2200 -n 4 -t 16 -o Adh_pggb_<define_the_name> -S
+singularity exec ../pggb.sif pggb -i ../data/pggb/Adh_chr2L.fasta --segment-length 10000 --map-pct-id 90 -G 1400,1600,2000,2200 -n 4 -t 16 -o Adh_pggb_s10000_G4 -S
+singularity exec ../pggb.sif pggb -i ../data/pggb/Adh_chr2L.fasta --segment-length 500 --map-pct-id 60 -G 1400,1600,2000,2200 -n 4 -t 16 -o Adh_pggb_s500_G4 -S
 ```
 
 ##### Questions
@@ -342,16 +344,16 @@ How does that effect graph statistics? How did that effect run time?
 
 | Run | Segment Length | Pairwise identity | Minimum match length | POA Length target | Length of the graph | Number of nodes | Number of edges |
 |---------|---------|---------|---------|---------|---------|---------|---------|
-| 1 | 5000 | 90 | 23 | 700,1100 | 89769 | 10922 | 14995 |
-| 2 | 5000 | 60 | 23 | 700,1100 | 89819 | 10902 | 14968 |
-| 3 | 100 | 90 | 23 | 700,1100 | 101211 | 8059 | 11062 |
-| 4 | 500 | 90 | 23 | 700,1100 | 92104 | 10511 | 14439 |
-| 5 | 10000 | 90 | 23 | 700,1100 | 89127 | 11024 | 15147 |
-| 6 | 20000 | 90 | 23 | 700,1100 | 89248 | 11105 | 15257 |
-| 7 | 100 | 60 | 23 | 700,1100 | 94040 | 9807 | 13466 |
-| 8 | 500 | 60 | 23 | 700,1100 | 88935 | 11184 | 15369 |
-| 9 | 5000 | 90 | 23 | 1400,1600,2000,2200 | 93070 | 10494 | 14418 |
-| 10 | 10000 | 90 | 23 | 1400,1600,2000,2200 | 92754 | 10554 | 14500 |
+| 1 | 5000 | 90 | 23 | 700,1100 | 89425 | 11024 | 15132 |
+| 2 | 5000 | 60 | 23 | 700,1100 | 89391 | 10927 | 14996 |
+| 3 | 100 | 90 | 23 | 700,1100 | 101444 | 7917 | 10869 |
+| 4 | 500 | 90 | 23 | 700,1100 | 92449 | 10340 | 14198 |
+| 5 | 10000 | 90 | 23 | 700,1100 | 89816 | 10913 | 14982 |
+| 6 | 20000 | 90 | 23 | 700,1100 | 89846 | 10846 | 14885 |
+| 7 | 100 | 60 | 23 | 700,1100 | 94016 | 9798 | 13454 |
+| 8 | 500 | 60 | 23 | 700,1100 | 89042 | 11149 | 15320 |
+| 9 | 500 | 60 | 23 | 1400,1600,2000,2200 | 92072 | 10758 | 14785 |
+| 10 | 10000 | 90 | 23 | 1400,1600,2000,2200 | 92453 | 10673 | 14669 |
 
 : PGGB runs results
 

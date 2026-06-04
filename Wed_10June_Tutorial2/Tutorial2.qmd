@@ -4,6 +4,7 @@ format:
   html:
     code-fold: true
     code-tools: true
+    code-overflow: wrap
     df-print: paged
     embed-resources: true
     toc: true
@@ -36,7 +37,9 @@ We will construct a graph from a sequence in fasta file format and then inject a
 
 ``` bash
 mkdir vg 
+
 cd vg
+
 singularity exec ../pggb.sif vg construct -r ../data/vg/tiny.fasta -v ../data/vg/tiny.vcf.gz > tiny.vg
 ```
 
@@ -44,6 +47,7 @@ Lets visualise this graph. Run both of these commands below. The difference betw
 
 ``` bash
 singularity exec ../pggb.sif vg view -dp tiny.vg | dot -T jpeg -o tiny.sequences.jpeg
+
 singularity exec ../pggb.sif vg view -dpS tiny.vg | dot -T jpeg -o tiny.sequence_lengths.jpeg
 ```
 
@@ -59,7 +63,7 @@ Ok lets break down what you see - the nodes are sequences, the links connect the
 
 What is the difference between the two graphs you visualized?
 
-Why are some sequences broken down into separate nodes even though there are no variants between them - how long are these nodes? why do you think that is? To get an idea run and look at the different parameters are the dafults for those parameters:
+Why are some sequences broken down into separate nodes even though there are no variants between them - how long are these nodes? why do you think that is? To get an idea run and look at the different parameters are the defaults for those parameters:
 
 ``` bash
 singularity exec ../pggb.sif vg construct -h
@@ -69,7 +73,7 @@ singularity exec ../pggb.sif vg construct -h
 
 ### Answers
 
-On one of the graph visualisations all nodes have the actualy sequences displayed, on the other only the length of nodes is displayed.
+On one of the graph visualisations all nodes have the actually sequences displayed, on the other only the length of nodes is displayed.
 
 The -m parameters specifies a limit the maximum allowable node sequence size (default: 32). All nodes are maximum 32bp long.
 
@@ -81,6 +85,7 @@ Now lets convert our tiny graph into a gfa file, the type of file format the pgg
 
 ``` bash
 singularity exec ../pggb.sif vg view tiny.vg > tiny.gfa
+
 cat tiny.gfa
 ```
 
@@ -150,7 +155,7 @@ The min-match-len sets a filter for exact matches below this length during graph
 
 Finally you have a set of parameters defined at the step run with smoothxg:
 
---poa-length-target - it specifies the target sequence length for POA. The default is 700,1100 which means two rounds of normalization are performed first using target length of 700bp and next of 1100bp.
+--poa-length-target - it specifies the target sequence length for the partial order alignment. The default is 700,1100 which means two rounds of normalization are performed first using target length of 700bp and next of 1100bp.
 
 --n-haplotypes - number of haplotypes you expect from the graph
 
@@ -172,7 +177,9 @@ Now we are ready to build our own graph. Lets start with everything set to defau
 
 ``` bash
 mkdir pggb
+
 cd pggb
+
 singularity exec ../pggb.sif pggb -i ../data/pggb/Adh_chr2L.fasta -n 4 -t 16 -o Adh_pggb_default -S
 ```
 
@@ -200,14 +207,15 @@ Lets start filling out the following table - best if you create an excel table o
 
 : PGGB runs results
 
-Note your results will not be the same as my results.
+Note your results will not be the same as my results. Re running smoothxg will generate a slightly different version of the graph. This is due to stochastic parallel sorting of the graph before blocks are selected for the multiple sequence alignment to be applied. Re-running smoothxg will almost always render a very slightly different result due to the inherent randomness.
+
 :::
 
 #### 3Bii. Map-pct-id
 
 So we know from our previous analysis that *Drosophila suzuki* differs from other species by a lot more than 10%. Perhaps that has an influence on the alignment in this genomic region or maybe the divergence is actually 10%.
 
-Lets change the pairwise identity to 60%. Check the graph statistics and then compare with the MinHash Distance (approximate divergence) [here](pairwise_dist.txt).
+Lets change the pairwise identity to 60%.
 
 ``` bash
 singularity exec ../pggb.sif pggb -i ../data/pggb/Adh_chr2L.fasta --map-pct-id 60 -n 4 -t 16 -o Adh_pggb_p60 -S
@@ -215,7 +223,7 @@ singularity exec ../pggb.sif pggb -i ../data/pggb/Adh_chr2L.fasta --map-pct-id 6
 
 ##### Questions
 
-What do you observe? What is your conclusion - should we stick with 60% of go with 90%?
+What do you observe? What is your conclusion - should we stick with 60% or go with 90%?
 
 | Run | Segment Length | Pairwise identity | Minimum match length | POA Length target | Length of the graph | Number of nodes | Number of edges |
 |---------|---------|---------|---------|---------|---------|---------|---------|
@@ -243,7 +251,10 @@ Now lets start changing the length of the mapped and aligned segments, lets test
 Use the command below but make sure to change the parameters in \<\>.
 
 ``` bash
-for i in 100 500 10000 20000; do singularity exec ../pggb.sif pggb -i ../data/pggb/Adh_chr2L.fasta --segment-length $i -n 4 -t 16 -o Adh_pggb_s${i} -S; done
+for i in 100 500 10000 20000; 
+do 
+  singularity exec ../pggb.sif pggb -i ../data/pggb/Adh_chr2L.fasta --segment-length $i -n 4 -t 16 -o Adh_pggb_s${i} -S; 
+done
 ```
 
 ##### Questions
@@ -287,12 +298,15 @@ So smaller segment lengths increase alignment sensitivity and create a more frag
 Lets try decreasing percentage identity for the graphs with smaller segment length (100 and 500 bp), lets try 60%.
 
 ``` bash
-for i in 100 500; do singularity exec ../pggb.sif pggb -i ../data/pggb/Adh_chr2L.fasta --segment-length $i --map-pct-id 60 -n 4 -t 16 -o Adh_pggb_s${i}_p60 -S; done
+for i in 100 500; 
+do 
+  singularity exec ../pggb.sif pggb -i ../data/pggb/Adh_chr2L.fasta --segment-length $i --map-pct-id 60 -n 4 -t 16 -o Adh_pggb_s${i}_p60 -S; 
+done
 ```
 
 ##### Questions
 
-Do you see any change? Which combinations of parameters do you think performed best? Why?
+Do you see any change?
 
 | Run | Segment Length | Pairwise identity | Minimum match length | POA Length target | Length of the graph | Number of nodes | Number of edges |
 |---------|---------|---------|---------|---------|---------|---------|---------|
@@ -322,10 +336,13 @@ The graphs decreased in size and are now more similar to those of segment-length
 
 #### 3Bv. Poa-length-target
 
-Lets now modify the last parameter, lets run more rounds of normalization and increase the target sequence length for the partial order alignment. Lets do that for the graphs created with 500bp and 10,000bp segment length. By default poa target length is set to 700 and 1100bp. Lets increase that and lets carry out 4 rounds of normalization.
+Lets now modify the last parameter, lets run more rounds of normalization and increase the target sequence length for the partial order alignment. Lets do that for the graphs created with 500bp (60% map_pct_id) and 10,000bp segment length (90% map_pct_id). Why would I choose those two?
+
+By default poa target length is set to 700 and 1100bp. Lets increase that and lets carry out 4 rounds of normalization.
 
 ``` bash
 singularity exec ../pggb.sif pggb -i ../data/pggb/Adh_chr2L.fasta --segment-length 10000 --map-pct-id 90 -G 1400,1600,2000,2200 -n 4 -t 16 -o Adh_pggb_s10000_G4 -S
+
 singularity exec ../pggb.sif pggb -i ../data/pggb/Adh_chr2L.fasta --segment-length 500 --map-pct-id 60 -G 1400,1600,2000,2200 -n 4 -t 16 -o Adh_pggb_s500_G4 -S
 ```
 
@@ -363,7 +380,7 @@ The graphs are more compact, have fewer nodes and fewer edges and the file size 
 
 #### 3Bvi. Visualisations of your graphs.
 
-Now lets have a look at all the visualizations. They are all created with odgi viz. Here I show the default parameters graph with 4 rounds of normalization.
+Now lets have a look at all the visualizations. They are all created with odgi viz. Here I show the default parameters graph with 4 rounds of normalization. If you would like to look at the graph structure of the any of the graphs you created, copy the visualisations in png onto your computer with scp.
 
 The default associates a color with each path. This is stable across different runs of odgi viz. (viz_multiqc.png)
 
@@ -375,11 +392,11 @@ We also have a view that shows the "self depth" across the graph. In this case t
 
 We can look at orientation of paths using two views.
 
-One shows the "position" of each path relative to the graph. It runs light to dark from 0 to path length. (viz_pos_multiqc.png)
+One shows the "position" of each path relative to the graph. It runs light to dark from 0 to path length. As you can see all of the paths are positioned the same way relative to the graph (viz_pos_multiqc.png)
 
 ![](images/Adh_chr2L.fasta.3d73c94.11fba48.34b343f.smooth.final.og.viz_pos_multiqc.png)
 
-A similar view shows inverted regions of paths relative to the graph in red, while the forward orientation in black. (viz_inv_multiqc.png)
+A similar view shows inverted regions of paths relative to the graph in red, while the forward orientation in black. In this region we do not observe any inversion. (viz_inv_multiqc.png)
 
 ![](images/Adh_chr2L.fasta.3d73c94.11fba48.34b343f.smooth.final.og.viz_inv_multiqc.png)
 
@@ -407,6 +424,24 @@ Do you see a similarity in the structure of the graph and the MSA?
 
 ![](images/graph.png)
 
-### 4. BONUS 
+### 4. BONUS
 
 Now that you have your table, you can keep on going and editing other parameters. In the end you can plot the graph lengths of graphs constructed with different parameter sets using R (ggplot2) and you can compare visualisations.
+
+## Conclusions
+
+1\. There are multiple different parameters that can impact the structure of the pangenome graph.
+
+2\. To choose the best set of parameters you need to understand the structure/quality of the genomes you are working with.
+
+3\. There are mutliple different ways to QC your graph:   
+
+-   Compression ratio - a PGGB graph is lossless so the smaller the graph size relative to the input genomes, the better. Inadequate set of parameters can split same sequences into separate nodes and inflate the size of the graph. However, as you have seen smoothxg can increase the size of the graph while improving compactness and structure so this rule has to be applied with caution taking into account other graph metrics.
+
+-   Alignment of BUSCO genes - while QCing the genome assembly you run BUSCO to check for benchmark single copy orthologs within your genome. You get a file of coordinates of those genes within your genome. Wfmash alignment can be QCed using those BUSCO gene coordinates - do single copy orthologs present across all sequences align well?
+
+-   SNP sets - once you call variants in your pangenome using vg deconstruct you can compare the called variants with a truth set, a set of SNPs you know should be found. That is not always available for all species.
+
+-   Use of external software - e.g. https://github.com/cumtr/PG-SCUnK
+
+... Anything you would add?

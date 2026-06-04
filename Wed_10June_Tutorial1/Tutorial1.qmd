@@ -5,6 +5,7 @@ format:
     css: styles.css
     code-fold: true
     code-tools: true
+    code-overflow: wrap
     df-print: paged
     resources:
       - data/* 
@@ -26,13 +27,14 @@ bibliography: references.bib
 
 knitr::opts_knit$set(root.dir = getwd())
 ```
-After you log in to the server check if you have the folder "data" present in your home directory. You will be working in groups of 3.
-In this tutorial we will be running software on the server using the files in the data folder and then looking at the output by looking at the figures embedded in this markdown. 
+
+After you log in to the server check if you have the folder "data" present in your home directory. You will be working in groups of 3. In this tutorial we will be running software on the server using the files in the data folder and then looking at the output by looking at the figures embedded in this markdown.
 
 If you would like to look at the figures you generated or if you would like to run the R code copy the files to your computer like so:
 
-```{bash}
+```{bash, eval = FALSE}
 scp -r ubuntu@pangenomics-vm-1:~/data .
+
 scp ubuntu@pangenomics-vm-1:~/<path-to-generated-file> .
 ```
 
@@ -99,12 +101,16 @@ Jaccard Similarity Index - a statistical measure used to quantify how similar tw
 In the command line run the code below to do so. The k-mer length used for the analysis is 25bp.
 
 ``` bash
-cd ~
 mkdir pankmer
+
 cd pankmer
+
 conda activate pangenomics
+
 pankmer adj-matrix -i ../data/pankmer/Drosophila_index.tar -o Drosophila_index_adj_matrix.csv
+
 pankmer clustermap -i Drosophila_index_adj_matrix.csv --metric jaccard -o Drosophila_jaccard.svg
+
 pankmer upset -i ../data/pankmer/Drosophila_index.tar -o Drosophila_index_upset.svg -g Drosophila_melanogaster_GCF_000001215.4 Drosophila_simulans_GCF_016746395.2 Drosophila_sechellia_GCF_004382195.2 Drosophila_suzuki_GCF_043229965.1
 ```
 
@@ -143,7 +149,7 @@ minimap2 -x asm20 -c --eqx --secondary=no
 k8-1.2/k8-x86_64-Linux paftools.js stat
 ```
 
-The paf statistics are in data/paf_stats. Lets look at the percentage of each genome that actually mapped.
+The paf statistics are in data/paf_stats (```ls ../data/paf_stats``` if you want to check). Lets look at the percentage of each genome that actually mapped.
 
 ::: {.callout-tip collapse="true" icon = "false" appearance="simple"}
 
@@ -155,9 +161,9 @@ library(tidyverse)
 library(dplyr)
 
 all = NULL
-for (i in list.files("data/paf_stats", pattern = "paf.stats")){
+for (i in list.files("../data/paf_stats/", pattern = "paf.stats")){
   name = str_remove(i, ".paf.stats")
-  df = read.delim(paste0("data/paf_stats", i), sep = ":", header = F)
+  df = read.delim(paste0("../data/paf_stats/", i), sep = ":", header = F)
   all = rbind(all, data.frame("comparison" = name, "mapping_rate" = df[c(6),]$V2 * 100/df[c(5),]$V2))
 }
 all = all %>% separate(comparison, into = c("target", "query"), sep = "_")
@@ -173,7 +179,7 @@ ggplot(all,aes(target, query, fill= mapping_rate)) +
 
 ### Questions
 
-What is your main conclusion? Do you observe any difference in which genome you use as a reference? How do the values compare to the PanKmer estimations of genome simialrity? Why do you think that is?
+What is your main conclusion? Do you observe any difference in which genome you use as a reference? How do the values compare to the PanKmer estimations of genome similarity? Why do you think that is?
 
 ## 3. Synteny conservation/Structural similarity - Are chromosomes structurally conserved?
 
@@ -181,22 +187,27 @@ Lets compare the orgnaization of the genomes using synteny analysis. For this we
 
 ``` bash
 cd ..
+
 mkdir ntsynt
+
 cd ntsynt
+
 conda activate pangenomics #if you deactivated it previously
+
 ntSynt -d 15 ../data/Drosophila*.fasta #this might take at most 10min
+
 genome_to_colour=$(head -n1 ntSynt.k24.w1000.synteny_blocks.tsv | cut -f2) 
-SOFTWARE_DIR= #to change
-python $SOFTWARE_DIR/ntSynt/visualization_scripts/format_blocks_gggenomes.py --blocks ntSynt.k24.w1000.synteny_blocks.tsv -p ggggenomes_viz --colour $genome_to_colour --fai *.fai
+
+python ../ntSynt/visualization_scripts/format_blocks_gggenomes.py --blocks ntSynt.k24.w1000.synteny_blocks.tsv -p ggggenomes_viz --colour $genome_to_colour --fai *.fai
 ```
 
 Run some statistics. Have a look at the column Average_coverage.
 
 ``` bash
-python $SOFTWARE_DIR/ntSynt/analysis_scripts/denovo_synteny_block_stats.py --tsv ntSynt.k24.w1000.synteny_blocks.tsv --fai *.fai
+python ../ntSynt/analysis_scripts/denovo_synteny_block_stats.py --tsv ntSynt.k24.w1000.synteny_blocks.tsv --fai *.fai
 ```
 
-Now the code below will help you visualize the synteny. If you download the ggggenomes_viz.sequence_lengths.tsv and ggggenomes_viz.links.tsv (it is in the data/ folder) you can use the code below to visualise it on your own in R.
+Now the code below will help you visualize the synteny. If you downloaded the data folder the ggggenomes_viz.sequence_lengths.tsv and ggggenomes_viz.links.tsv are in data/ntsynt/ and you can use the code below to visualise it on your own in R.
 
 ::: {.callout-tip collapse="true" icon = "false" appearance="simple"}
 
@@ -220,8 +231,8 @@ library(ggplot2)
 library(ggh4x)
 
 args = NULL
-args$sequences = "data/ntsynt/ggggenomes_viz.sequence_lengths.tsv"
-args$links = "data/ntsynt/ggggenomes_viz.links.tsv"
+args$sequences = "../data/ntsynt/ggggenomes_viz.sequence_lengths.tsv"
+args$links = "../data/ntsynt/ggggenomes_viz.links.tsv"
 args$scale = 10000 #scale bar can be changed
 
 # Read in and prepare sequences
@@ -309,11 +320,11 @@ library(reshape2)
 
 synteny = NULL
 variants = NULL
-syri_summary_files = list.files("data/syri/", patter = "summary")
+syri_summary_files = list.files("../data/syri/", patter = "summary")
 n=1
 for (i in syri_summary_files){
   query = sapply(str_split(str_remove(i, "syri.summary"), "_"), .subset, 2)
-  df = read.delim(paste0("data/", i), sep = "\t", header = F)
+  df = read.delim(paste0("../data/syri/", i), sep = "\t", header = F)
   df1 = df[df$V1 %in% c("Syntenic regions", "Not aligned (reference)", "Not aligned (query)"),]
   df1 = df1[,-2]
   df1$V1 = c("Syntenic regions", "Not aligned", "Not aligned")
@@ -362,13 +373,13 @@ Here we compare the output.
 #| fig-width: 20
 
 
-files_fai = list.files("data/", pattern = "fai")
+files_fai = list.files("../data/", pattern = "fai")
 genomes_sizes = lapply(files_fai, function(x){tail(read.delim(paste0("data/",x), header = F), n= 1)$V3})
 names(genomes_sizes) = files_fai
 genomes_sizes = data.frame(genomes_size = t(as.data.frame(genomes_sizes)))
 genomes_sizes$genome = str_remove(rownames(genomes_sizes), ".fai")
 
-df = read.delim("data/repeats.txt", sep = "\t")
+df = read.delim("../data/repeats.txt", sep = "\t")
 
 df = merge(genomes_sizes, df, by = "genome")
 
@@ -395,7 +406,11 @@ Lets look at the mapping of the sex chromosome between the 4 species using SVbyE
 
 ```{r}
 library(SVbyEye)
-paf.table = readRDS("data/svbyeye/chrX.paf.rds")
+paf.table = NULL
+for (i in list.files("../minimap2/chrX/", pattern = "DroMel#1#X_", full.names = T)){
+  paf = readPaf(i)
+  paf.table = rbind(paf,paf.table)
+}
 
 plotAVA(
     paf.table = paf.table, color.by = "direction", seqnames.order = c("DroSech#1#X","DroMel#1#X", "DroSim#1#X")

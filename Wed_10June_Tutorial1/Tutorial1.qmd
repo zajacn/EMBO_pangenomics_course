@@ -33,9 +33,9 @@ After you log in to the server check if you have the folder "data" present in yo
 If you would like to look at the figures you generated or if you would like to run the R code copy the files to your computer like so:
 
 ```{bash, eval = FALSE}
-scp -r ubuntu@pangenomics-vm-1:~/data .
+scp -r <your_username>@212.189.205.230:~/zajac/data <your_dir>
 
-scp ubuntu@pangenomics-vm-1:~/<path-to-generated-file> .
+scp <your_username>@212.189.205.230:~/<path-to-generated-file> .
 ```
 
 ## Learning objectives
@@ -67,7 +67,7 @@ The following phylogenetic tree of 35 Drosophila species is from [@zheng2026]
 We are working with 4 Drosophila genomes highlighted on the tree, whose genomes have been downloaded from NCBI.
 
 ```{r}
-df = read.delim("data/metadata", header = F, sep = " ")
+df = read.delim("../zajac/data/metadata", header = F, sep = " ")
 colnames(df) = c("NCBI link", "Species", "PanSN-spec")
 knitr::kable(df[,c(2,3,1)])
 ```
@@ -107,11 +107,11 @@ cd pankmer
 
 conda activate pangenomics
 
-pankmer adj-matrix -i ../data/pankmer/Drosophila_index.tar -o Drosophila_index_adj_matrix.csv
+pankmer adj-matrix -i ../zajac/data/pankmer/Drosophila_index.tar -o Drosophila_index_adj_matrix.csv
 
 pankmer clustermap -i Drosophila_index_adj_matrix.csv --metric jaccard -o Drosophila_jaccard.svg
 
-pankmer upset -i ../data/pankmer/Drosophila_index.tar -o Drosophila_index_upset.svg -g Drosophila_melanogaster_GCF_000001215.4 Drosophila_simulans_GCF_016746395.2 Drosophila_sechellia_GCF_004382195.2 Drosophila_suzuki_GCF_043229965.1
+pankmer upset -i ../zajac/data/pankmer/Drosophila_index.tar -o Drosophila_index_upset.svg -g Drosophila_melanogaster_GCF_000001215.4 Drosophila_simulans_GCF_016746395.2 Drosophila_sechellia_GCF_004382195.2 Drosophila_suzuki_GCF_043229965.1
 ```
 
 Lets look at the plots you generated. You can copy the plots to your computer or just have a look at the ones below.
@@ -149,7 +149,7 @@ minimap2 -x asm20 -c --eqx --secondary=no
 k8-1.2/k8-x86_64-Linux paftools.js stat
 ```
 
-The paf statistics are in data/paf_stats (```ls ../data/paf_stats``` if you want to check). Lets look at the percentage of each genome that actually mapped.
+The paf statistics are in data/paf_stats (```ls ../zajac/data/paf_stats``` if you want to check). Lets look at the percentage of each genome that actually mapped.
 
 ::: {.callout-tip collapse="true" icon = "false" appearance="simple"}
 
@@ -161,9 +161,9 @@ library(tidyverse)
 library(dplyr)
 
 all = NULL
-for (i in list.files("../data/paf_stats/", pattern = "paf.stats")){
+for (i in list.files("../zajac/data/paf_stats/", pattern = "paf.stats")){
   name = str_remove(i, ".paf.stats")
-  df = read.delim(paste0("../data/paf_stats/", i), sep = ":", header = F)
+  df = read.delim(paste0("../zajac/data/paf_stats/", i), sep = ":", header = F)
   all = rbind(all, data.frame("comparison" = name, "mapping_rate" = df[c(6),]$V2 * 100/df[c(5),]$V2))
 }
 all = all %>% separate(comparison, into = c("target", "query"), sep = "_")
@@ -194,7 +194,7 @@ cd ntsynt
 
 conda activate pangenomics #if you deactivated it previously
 
-ntSynt -d 15 ../data/Drosophila*.fasta #this might take at most 10min
+ntSynt -d 15 ../zajac/data/Drosophila*.fasta #this might take at most 10min
 
 genome_to_colour=$(head -n1 ntSynt.k24.w1000.synteny_blocks.tsv | cut -f2) 
 
@@ -231,8 +231,8 @@ library(ggplot2)
 library(ggh4x)
 
 args = NULL
-args$sequences = "../data/ntsynt/ggggenomes_viz.sequence_lengths.tsv"
-args$links = "../data/ntsynt/ggggenomes_viz.links.tsv"
+args$sequences = "../zajac/data/ntsynt/ggggenomes_viz.sequence_lengths.tsv"
+args$links = "../zajac/data/ntsynt/ggggenomes_viz.links.tsv"
 args$scale = 10000 #scale bar can be changed
 
 # Read in and prepare sequences
@@ -320,11 +320,11 @@ library(reshape2)
 
 synteny = NULL
 variants = NULL
-syri_summary_files = list.files("../data/syri/", patter = "summary")
+syri_summary_files = list.files("../zajac/data/syri/", patter = "summary")
 n=1
 for (i in syri_summary_files){
   query = sapply(str_split(str_remove(i, "syri.summary"), "_"), .subset, 2)
-  df = read.delim(paste0("../data/syri/", i), sep = "\t", header = F)
+  df = read.delim(paste0("../zajac/data/syri/", i), sep = "\t", header = F)
   df1 = df[df$V1 %in% c("Syntenic regions", "Not aligned (reference)", "Not aligned (query)"),]
   df1 = df1[,-2]
   df1$V1 = c("Syntenic regions", "Not aligned", "Not aligned")
@@ -339,9 +339,9 @@ for (i in syri_summary_files){
   n = n+1
 }
 
-p1 = ggplot(synteny, aes(variable, as.numeric(value)/1000000, fill = cat)) + geom_col() + facet_grid(~comp, space = "free", scales = "free") + theme_bw() + labs(y = "Length (Mbp)", x = "species compared", fill = "category") + ggtitle("Alignment")
+p1 = ggplot(synteny, aes(variable, as.numeric(value)/1000000, fill = cat)) + geom_col() + facet_grid(~comp, space = "free", scales = "free") + theme_bw() + labs(y = "Length (Mbp)", x = "species compared", fill = "category") + ggtitle("Alignment") + theme(text = element_text(size = 15))
 
-p2 = ggplot(variants, aes(variable, as.numeric(value)/1000000, fill = variant_type)) + geom_col(position = "dodge") + facet_grid(~comp, space = "free", scales = "free") + theme_bw() + labs(y = "Length (Mbp)", x = "species compared", fill = "category") + ggtitle("Variants")
+p2 = ggplot(variants, aes(variable, as.numeric(value)/1000000, fill = variant_type)) + geom_col(position = "dodge") + facet_grid(~comp, space = "free", scales = "free") + theme_bw() + labs(y = "Length (Mbp)", x = "species compared", fill = "category") + ggtitle("Variants") + theme(text = element_text(size = 15))
 
 p1/p2
 ```
@@ -373,13 +373,13 @@ Here we compare the output.
 #| fig-width: 20
 
 
-files_fai = list.files("../data/", pattern = "fai")
-genomes_sizes = lapply(files_fai, function(x){tail(read.delim(paste0("data/",x), header = F), n= 1)$V3})
+files_fai = list.files("../zajac/data/", pattern = "fai")
+genomes_sizes = lapply(files_fai, function(x){tail(read.delim(paste0("../zajac/data/",x), header = F), n= 1)$V3})
 names(genomes_sizes) = files_fai
 genomes_sizes = data.frame(genomes_size = t(as.data.frame(genomes_sizes)))
 genomes_sizes$genome = str_remove(rownames(genomes_sizes), ".fai")
 
-df = read.delim("../data/repeats.txt", sep = "\t")
+df = read.delim("../zajac/data/repeats.txt", sep = "\t")
 
 df = merge(genomes_sizes, df, by = "genome")
 

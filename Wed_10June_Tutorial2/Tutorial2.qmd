@@ -388,25 +388,30 @@ Now lets have a look at all the visualizations. They are all created with odgi v
 
 The default associates a color with each path. This is stable across different runs of odgi viz. (viz_multiqc.png)
 
-![](images/Adh_chr2L.fasta.3d73c94.11fba48.34b343f.smooth.final.og.viz_multiqc.png){width="676"}
+![](images/Adh_chr2L.fasta.3d73c94.11fba48.cf5e231.smooth.final.og.viz_multiqc.png){width="676"}
 
 We also have a view that shows the "self depth" across the graph. In this case there are no looping paths, so the color is always gray=1x. (viz_depth_multiqc.png)
 
-![](images/Adh_chr2L.fasta.3d73c94.11fba48.34b343f.smooth.final.og.viz_depth_multiqc.png)
+![](images/Adh_chr2L.fasta.3d73c94.11fba48.cf5e231.smooth.final.og.viz_depth_multiqc.png)
 
 We can look at orientation of paths using two views.
 
 One shows the "position" of each path relative to the graph. It runs light to dark from 0 to path length. As you can see all of the paths are positioned the same way relative to the graph (viz_pos_multiqc.png)
 
-![](images/Adh_chr2L.fasta.3d73c94.11fba48.34b343f.smooth.final.og.viz_pos_multiqc.png)
+![](images/Adh_chr2L.fasta.3d73c94.11fba48.cf5e231.smooth.final.og.viz_pos_multiqc.png)
 
 A similar view shows inverted regions of paths relative to the graph in red, while the forward orientation in black. In this region we do not observe any inversion. (viz_inv_multiqc.png)
 
-![](images/Adh_chr2L.fasta.3d73c94.11fba48.34b343f.smooth.final.og.viz_inv_multiqc.png)
+![](images/Adh_chr2L.fasta.3d73c94.11fba48.cf5e231.smooth.final.og.viz_inv_multiqc.png)
 
 And finally, a compressed view shows coverage across the pangenome coordinate space of all paths. It's a kind of heatmap. This helps when we have a lot of paths to consider (viz_O_multiqc.png)
 
-![](images/Adh_chr2L.fasta.3d73c94.11fba48.34b343f.smooth.final.og.viz_O_multiqc.png)
+![](images/Adh_chr2L.fasta.3d73c94.11fba48.cf5e231.smooth.final.og.viz_O_multiqc.png)
+
+And now lets look where the Adh genes is!
+
+![](images/file.png)
+
 
 ##### Questions
 
